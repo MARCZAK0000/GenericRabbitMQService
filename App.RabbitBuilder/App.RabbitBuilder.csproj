@@ -2,23 +2,23 @@
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
-    <RootNamespace>E_BangAppRabbitBuilder</RootNamespace>
+    <RootNamespace>AppRabbitBuilder</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <PackageReleaseNotes>Add Retry Mechanics, Delete CancelationToken</PackageReleaseNotes>
+    <PackageReleaseNotes>Updated Nuget Packages</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup>
     <PackageId>App.RabbitBuilder</PackageId>
-    <Version>2.0.3</Version>
+    <Version>3.0.0</Version>
     <Authors>MARCZAK0000</Authors>
     <Description>Create rabbit queues</Description>
     <PackageTags>rabbit, queue</PackageTags>
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.5" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.5" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.8" />
     <PackageReference Include="RabbitMq.Client" Version="7.1.2" />
   </ItemGroup>
 
