@@ -187,6 +187,7 @@ namespace E_BangAppRabbitBuilder.Service.Listener
             {
                 _logger.LogError("{Date} - ListenerQueue : Failed to initialize RabbitMQ listener for queue {queueName}. Error: {ex}. Application will continue without RabbitMQ functionality.", 
                     DateTime.Now, queueOptions?.QueueName ?? "Unknown", ex.Message);
+                throw;
             }
         }
     }
