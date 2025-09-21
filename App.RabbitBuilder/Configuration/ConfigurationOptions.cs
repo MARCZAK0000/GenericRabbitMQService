@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace E_BangAppRabbitBuilder.Configuration
+namespace App.RabbitBuilder.Configuration
 {
     public class ConfigurationOptions
     {

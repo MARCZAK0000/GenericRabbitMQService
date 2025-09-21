@@ -1,10 +1,10 @@
-﻿using E_BangAppRabbitBuilder.Configuration;
-using E_BangAppRabbitBuilder.Repository;
-using E_BangAppRabbitBuilder.Service.Listener;
-using E_BangAppRabbitBuilder.Service.Sender;
+﻿using App.RabbitBuilder.Configuration;
+using App.RabbitBuilder.Repository;
+using App.RabbitBuilder.Service.Listener;
+using App.RabbitBuilder.Service.Sender;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace E_BangAppRabbitBuilder.ServiceExtensions
+namespace App.RabbitBuilder.ServiceExtensions
 {
     public static class AddRabbitMqExtensions
     {

@@ -1,13 +1,13 @@
-﻿using E_BangAppRabbitBuilder.Configuration;
-using E_BangAppRabbitBuilder.Exceptions;
-using E_BangAppRabbitBuilder.Options;
-using E_BangAppRabbitBuilder.Repository;
+﻿using App.RabbitBuilder.Configuration;
+using App.RabbitBuilder.Exceptions;
+using App.RabbitBuilder.Options;
+using App.RabbitBuilder.Repository;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using System.Text;
 using System.Text.Json;
 
-namespace E_BangAppRabbitBuilder.Service.Sender
+namespace App.RabbitBuilder.Service.Sender
 {
     public class RabbitSenderService : IRabbitSenderService
     {
@@ -15,7 +15,7 @@ namespace E_BangAppRabbitBuilder.Service.Sender
         private readonly ILogger<RabbitSenderService> _logger;
         private readonly ConfigurationOptions _configOptions;
 
-        public RabbitSenderService(IRabbitRepository repository, 
+        public RabbitSenderService(IRabbitRepository repository,
             ILogger<RabbitSenderService> logger,
             ConfigurationOptions configurationOptions)
         {

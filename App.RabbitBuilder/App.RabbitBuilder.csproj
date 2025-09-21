@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
-    <RootNamespace>AppRabbitBuilder</RootNamespace>
+    <RootNamespace>App.RabbitBuilder</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PackageReleaseNotes>Updated Nuget Packages</PackageReleaseNotes>
@@ -10,7 +10,7 @@
 
   <PropertyGroup>
     <PackageId>App.RabbitBuilder</PackageId>
-    <Version>3.0.1</Version>
+    <Version>3.0.2</Version>
     <Authors>MARCZAK0000</Authors>
     <Description>Create rabbit queues</Description>
     <PackageTags>rabbit, queue</PackageTags>

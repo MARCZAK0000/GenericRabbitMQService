@@ -1,6 +1,6 @@
-﻿using E_BangAppRabbitBuilder.Options;
+﻿using App.RabbitBuilder.Options;
 
-namespace E_BangAppRabbitBuilder.Service.Listener
+namespace App.RabbitBuilder.Service.Listener
 {
     public interface IRabbitListenerService
     {

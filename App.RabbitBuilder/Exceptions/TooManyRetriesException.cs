@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace E_BangAppRabbitBuilder.Exceptions
+namespace App.RabbitBuilder.Exceptions
 {
     public class TooManyRetriesException : Exception
     {

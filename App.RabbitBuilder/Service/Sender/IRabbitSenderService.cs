@@ -1,6 +1,6 @@
-﻿using E_BangAppRabbitBuilder.Options;
+﻿using App.RabbitBuilder.Options;
 
-namespace E_BangAppRabbitBuilder.Service.Sender
+namespace App.RabbitBuilder.Service.Sender
 {
 
     public interface IRabbitSenderService

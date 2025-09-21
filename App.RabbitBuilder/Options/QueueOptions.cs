@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace E_BangAppRabbitBuilder.Options
+namespace App.RabbitBuilder.Options
 {
     public class QueueOptions
     {

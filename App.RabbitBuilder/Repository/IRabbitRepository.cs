@@ -1,7 +1,7 @@
-﻿using E_BangAppRabbitBuilder.Options;
+﻿using App.RabbitBuilder.Options;
 using RabbitMQ.Client;
 
-namespace E_BangAppRabbitBuilder.Repository
+namespace App.RabbitBuilder.Repository
 {
     public interface IRabbitRepository
     {

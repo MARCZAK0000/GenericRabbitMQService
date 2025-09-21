@@ -1,14 +1,14 @@
-﻿using E_BangAppRabbitBuilder.Configuration;
-using E_BangAppRabbitBuilder.Exceptions;
-using E_BangAppRabbitBuilder.Options;
-using E_BangAppRabbitBuilder.Repository;
+﻿using App.RabbitBuilder.Configuration;
+using App.RabbitBuilder.Exceptions;
+using App.RabbitBuilder.Options;
+using App.RabbitBuilder.Repository;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
 using System.Text.Json;
 
-namespace E_BangAppRabbitBuilder.Service.Listener
+namespace App.RabbitBuilder.Service.Listener
 {
     public class RabbitListenerService : IRabbitListenerService
     {
@@ -39,7 +39,7 @@ namespace E_BangAppRabbitBuilder.Service.Listener
         public async Task InitListenerRabbitQueueAsync<T>(RabbitOptions rabbitOptions, Func<T, Task> MessageHook, CancellationToken token)
             where T : class
         {
-            if(rabbitOptions.ListenerQueueName == null)
+            if (rabbitOptions.ListenerQueueName == null)
             {
                 throw new ArgumentNullException(nameof(rabbitOptions.ListenerQueueName), "ListenerQueueName cannot be null.");
             }
@@ -48,7 +48,7 @@ namespace E_BangAppRabbitBuilder.Service.Listener
                 await InitListenerRabbitQueueCoreAsync(rabbitOptions, rabbitOptions.ListenerQueueName, MessageHook);
             }, token);
         }
-        
+
         /// <summary>
         /// Initializes a listener for a RabbitMQ queue and sets up a message processing hook.
         /// </summary>
@@ -91,7 +91,7 @@ namespace E_BangAppRabbitBuilder.Service.Listener
         /// <returns></returns>
         private async Task RetryConnection(Func<Task> connectAction, CancellationToken token)
         {
-            
+
             for (int i = 1; i <= _configurationOptions.ServiceRetryCount; i++)
             {
                 try
@@ -139,22 +139,22 @@ namespace E_BangAppRabbitBuilder.Service.Listener
             {
                 _logger.LogInformation("{Date} - Rabbit Options: {rabbitOptions}", DateTime.Now, rabbitOptions.ToString());
                 _logger.LogInformation("{Date} - ListenerQueue : Init connection", DateTime.Now);
-                
+
                 IConnection connection = await _repository.CreateConnectionAsync(rabbitOptions);
                 _logger.LogInformation("{Date} - ListenerQueue : Created connection, conn: {conn}", DateTime.Now, connection.ToString());
-                
+
                 _logger.LogInformation("{Date} - ListenerQueue : Init channel", DateTime.Now);
                 IChannel channel = await _repository.CreateChannelAsync(connection);
                 _logger.LogInformation("{Date} - ListenerQueue : Created channel, channel: {channel}", DateTime.Now, channel.ToString());
-                
+
                 _logger.LogInformation
                     ("{Date} - ListenerQueue : Init Queue, on {host}, queue_name: {name}",
                     DateTime.Now, rabbitOptions.Host, queueOptions.QueueName);
-                    
+
                 await channel.QueueDeclareAsync(queue: queueOptions.QueueName,
                     durable: true, exclusive: false, autoDelete: false, arguments: null,
                         noWait: false);
-                        
+
                 _logger.LogInformation
                     ("{Date} - ListenerQueue : Created Queue, on {host}, queue_name: {name}",
                     DateTime.Now, rabbitOptions.Host, queueOptions.QueueName);
@@ -179,13 +179,13 @@ namespace E_BangAppRabbitBuilder.Service.Listener
                 };
 
                 await channel.BasicConsumeAsync(queueOptions.QueueName, autoAck: false, consumer: consumer);
-                
-                _logger.LogInformation("{Date} - ListenerQueue : Successfully started consuming messages from {queueName}", 
+
+                _logger.LogInformation("{Date} - ListenerQueue : Successfully started consuming messages from {queueName}",
                     DateTime.Now, queueOptions.QueueName);
             }
             catch (Exception ex)
             {
-                _logger.LogError("{Date} - ListenerQueue : Failed to initialize RabbitMQ listener for queue {queueName}. Error: {ex}. Application will continue without RabbitMQ functionality.", 
+                _logger.LogError("{Date} - ListenerQueue : Failed to initialize RabbitMQ listener for queue {queueName}. Error: {ex}. Application will continue without RabbitMQ functionality.",
                     DateTime.Now, queueOptions?.QueueName ?? "Unknown", ex.Message);
                 throw;
             }

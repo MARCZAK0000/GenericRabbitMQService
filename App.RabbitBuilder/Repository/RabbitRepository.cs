@@ -1,9 +1,9 @@
-﻿using E_BangAppRabbitBuilder.Configuration;
-using E_BangAppRabbitBuilder.Options;
+﻿using App.RabbitBuilder.Configuration;
+using App.RabbitBuilder.Options;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
-namespace E_BangAppRabbitBuilder.Repository
+namespace App.RabbitBuilder.Repository
 {
     public class RabbitRepository : IRabbitRepository
     {
