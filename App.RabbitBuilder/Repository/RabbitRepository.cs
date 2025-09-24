@@ -20,7 +20,9 @@ namespace App.RabbitBuilder.Repository
         {
             try
             {
-                return await connection.CreateChannelAsync();
+                var channelOptions = new CreateChannelOptions(true, true);
+               
+                return await connection.CreateChannelAsync(channelOptions);
             }
             catch (Exception e)
             {

@@ -14,9 +14,9 @@ namespace App.RabbitBuilder.ServiceExtensions
             configurationOptions?.Invoke(options);
 
             services.AddSingleton(options);
-            services.AddScoped<IRabbitRepository, RabbitRepository>();  
-            services.AddScoped<IRabbitListenerService,  RabbitListenerService>();   
-            services.AddScoped<IRabbitSenderService, RabbitSenderService>();
+            services.AddSingleton<IRabbitRepository, RabbitRepository>();  
+            services.AddSingleton<IRabbitListenerService,  RabbitListenerService>();   
+            services.AddSingleton<IRabbitSenderService, RabbitSenderService>();
         }
     }
 }

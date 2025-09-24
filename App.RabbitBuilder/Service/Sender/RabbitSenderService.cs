@@ -2,6 +2,7 @@
 using App.RabbitBuilder.Exceptions;
 using App.RabbitBuilder.Options;
 using App.RabbitBuilder.Repository;
+using App.RabbitBuilder.Service.Base;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using System.Text;
@@ -9,19 +10,14 @@ using System.Text.Json;
 
 namespace App.RabbitBuilder.Service.Sender
 {
-    public class RabbitSenderService : IRabbitSenderService
+    public class RabbitSenderService : RabbitServiceBase, IRabbitSenderService
     {
-        private readonly IRabbitRepository _repository;
         private readonly ILogger<RabbitSenderService> _logger;
-        private readonly ConfigurationOptions _configOptions;
-
         public RabbitSenderService(IRabbitRepository repository,
             ILogger<RabbitSenderService> logger,
-            ConfigurationOptions configurationOptions)
-        {
-            _repository = repository;
+            ConfigurationOptions configurationOptions) : base(configurationOptions, repository, logger)
+        { 
             _logger = logger;
-            _configOptions = configurationOptions;
         }
 
         /// <summary>
@@ -39,7 +35,8 @@ namespace App.RabbitBuilder.Service.Sender
 
             await RetryConnection(async () =>
             {
-                await InitSenderRabbitQueueCoreAsync(rabbitOptions, rabbitOptions.SenderQueueName, message);
+                await CreateRabbitConnectionAsync(rabbitOptions, token);
+                await InitSenderRabbitQueueHandlerAsync(rabbitOptions.SenderQueueName, message);
             }, token);
         }
 
@@ -59,58 +56,18 @@ namespace App.RabbitBuilder.Service.Sender
 
             await RetryConnection(async () =>
             {
-                await InitSenderRabbitQueueCoreAsync(rabbitOptions, queueOptions, message);
+                await CreateRabbitConnectionAsync(rabbitOptions, token);
+                await InitSenderRabbitQueueHandlerAsync(queueOptions, message);
             }, token);
         }
 
-        private async Task RetryConnection(Func<Task> connection, CancellationToken token)
-        {
-            for (int attempts = 1; attempts <= _configOptions.ServiceRetryCount; attempts++)
-            {
-                try
-                {
-                    token.ThrowIfCancellationRequested();
-                    await connection();
-                    _logger.LogInformation("RabbitMQ connected successfully on attempt {Attempt}", attempts);
-                    return;
-                }
-                catch (OperationCanceledException)
-                {
-                    _logger.LogInformation("RabbitMQ connection cancelled");
-                    throw; // Re-throw cancellation
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning("Attempt {Attempt}: RabbitMQ connection failed - {ErrorMessage}", attempts, ex.Message);
-
-                    if (attempts == _configOptions.ServiceRetryCount)
-                    {
-                        _logger.LogError(ex, "All {MaxAttempts} connection attempts failed", _configOptions.ServiceRetryCount);
-                        throw new TooManyRetriesException($"All {_configOptions.ServiceRetryCount} connection attempts failed");
-                    }
-
-                    await Task.Delay(TimeSpan.FromSeconds(_configOptions.ServiceRetryDelaySeconds), token);
-                }
-            }
-        }
-
-        private async Task InitSenderRabbitQueueCoreAsync<T>(RabbitOptionsBase rabbitOptions, QueueOptions queueOptions,
+        private async Task InitSenderRabbitQueueHandlerAsync<T>(QueueOptions queueOptions,
             T message) where T : class
         {
             try
             {
-                _logger.LogInformation("Initializing RabbitMQ sender with options: {RabbitOptions}", rabbitOptions.ToString());
-
-                _logger.LogDebug("Creating RabbitMQ connection");
-                IConnection connection = await _repository.CreateConnectionAsync(rabbitOptions);
-                _logger.LogDebug("RabbitMQ connection created successfully");
-
-                _logger.LogDebug("Creating RabbitMQ channel");
-                IChannel channel = await _repository.CreateChannelAsync(connection);
-                _logger.LogDebug("RabbitMQ channel created successfully");
-
-                _logger.LogInformation("Declaring queue {QueueName} on host {Host}", queueOptions.QueueName, rabbitOptions.Host);
-                await channel.QueueDeclareAsync(
+                ValidateConnection();
+                await channel!.QueueDeclareAsync(
                     queue: queueOptions.QueueName,
                     durable: true,
                     exclusive: false,
@@ -128,12 +85,12 @@ namespace App.RabbitBuilder.Service.Sender
 
                 await channel.BasicPublishAsync(
                     exchange: string.Empty,
-                    routingKey: queueOptions.QueueName, // Use actual queue name instead of hardcoded "task_queue"
+                    routingKey: queueOptions.QueueName, 
                     mandatory: true,
                     basicProperties: properties,
                     body: encodeMessage);
 
-                _logger.LogInformation("Message sent successfully to queue {QueueName}", queueOptions.QueueName);
+                
             }
             catch (Exception ex)
             {

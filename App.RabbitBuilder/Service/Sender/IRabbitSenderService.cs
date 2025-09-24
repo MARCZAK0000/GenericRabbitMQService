@@ -1,9 +1,10 @@
 ﻿using App.RabbitBuilder.Options;
+using App.RabbitBuilder.Service.Base;
 
 namespace App.RabbitBuilder.Service.Sender
 {
 
-    public interface IRabbitSenderService
+    public interface IRabbitSenderService : IRabbitServiceBase
     {
         /// <summary>
         /// Send Message to Queue 

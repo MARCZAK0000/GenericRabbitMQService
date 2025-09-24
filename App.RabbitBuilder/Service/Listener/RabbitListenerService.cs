@@ -2,6 +2,7 @@
 using App.RabbitBuilder.Exceptions;
 using App.RabbitBuilder.Options;
 using App.RabbitBuilder.Repository;
+using App.RabbitBuilder.Service.Base;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -10,16 +11,14 @@ using System.Text.Json;
 
 namespace App.RabbitBuilder.Service.Listener
 {
-    public class RabbitListenerService : IRabbitListenerService
+    public class RabbitListenerService : RabbitServiceBase, IRabbitListenerService
     {
-        private readonly IRabbitRepository _repository;
         private readonly ILogger<RabbitListenerService> _logger;
-        private readonly ConfigurationOptions _configurationOptions;
-        public RabbitListenerService(IRabbitRepository repository, ILogger<RabbitListenerService> logger, ConfigurationOptions configurationOptions)
+        public RabbitListenerService(IRabbitRepository repository,
+            ILogger<RabbitListenerService> logger,
+            ConfigurationOptions configurationOptions) : base(configurationOptions, repository, logger)
         {
-            _repository = repository;
             _logger = logger;
-            _configurationOptions = configurationOptions;
         }
 
         /// <summary>
@@ -45,6 +44,7 @@ namespace App.RabbitBuilder.Service.Listener
             }
             await RetryConnection(async () =>
             {
+                await CreateRabbitConnectionAsync(rabbitOptions, token);
                 await InitListenerRabbitQueueCoreAsync(rabbitOptions, rabbitOptions.ListenerQueueName, MessageHook);
             }, token);
         }
@@ -75,48 +75,9 @@ namespace App.RabbitBuilder.Service.Listener
             }
             await RetryConnection(async () =>
             {
+                await CreateRabbitConnectionAsync(rabbitOptions, token);
                 await InitListenerRabbitQueueCoreAsync(rabbitOptions, queueOptions, MessageHook);
             }, token);
-        }
-        /// <summary>
-        /// Attempts to establish a connection by executing the specified connection action, retrying on failure.
-        /// </summary>
-        /// <remarks>This method retries the connection action up to the specified number of attempts,
-        /// with a delay between each attempt.  If the connection is successfully established, the method returns
-        /// immediately. If all attempts fail, the last exception  encountered is re-thrown.</remarks>
-        /// <param name="connectAction">The asynchronous action to execute in order to establish the connection.</param>
-        /// <param name="token">A <see cref="CancellationToken"/> used to observe cancellation requests.</param>
-        /// <param name="maxAttempts">The maximum number of connection attempts. Defaults to 5.</param>
-        /// <param name="delaySeconds">The delay, in seconds, between retry attempts. Defaults to 10.</param>
-        /// <returns></returns>
-        private async Task RetryConnection(Func<Task> connectAction, CancellationToken token)
-        {
-
-            for (int i = 1; i <= _configurationOptions.ServiceRetryCount; i++)
-            {
-                try
-                {
-                    token.ThrowIfCancellationRequested();
-                    await connectAction();
-                    _logger.LogInformation("{Date} - RabbitMQ connected on attempt {Attempt}", DateTime.Now, i);
-                    return;
-                }
-                catch (OperationCanceledException)
-                {
-                    _logger.LogInformation("{Date} - RabbitMQ connection cancelled for queue", DateTime.Now);
-                    throw; // Re-throw cancellation
-                }
-                catch (Exception e)
-                {
-                    _logger.LogWarning("{Date} - Attempt {Attempt}: Connection failed - {ex}", DateTime.Now, i, e.Message);
-                    if (i == _configurationOptions.ServiceRetryCount)
-                    {
-                        _logger.LogError("All {Max} connection attempts failed.", _configurationOptions.ServiceRetryCount);
-                        throw new TooManyRetriesException($"All {_configurationOptions.ServiceRetryCount} connection attempts failed");
-                    }
-                    await Task.Delay(TimeSpan.FromSeconds(_configurationOptions.ServiceRetryDelaySeconds), token);
-                }
-            }
         }
 
         /// <summary>
@@ -137,21 +98,8 @@ namespace App.RabbitBuilder.Service.Listener
         {
             try
             {
-                _logger.LogInformation("{Date} - Rabbit Options: {rabbitOptions}", DateTime.Now, rabbitOptions.ToString());
-                _logger.LogInformation("{Date} - ListenerQueue : Init connection", DateTime.Now);
-
-                IConnection connection = await _repository.CreateConnectionAsync(rabbitOptions);
-                _logger.LogInformation("{Date} - ListenerQueue : Created connection, conn: {conn}", DateTime.Now, connection.ToString());
-
-                _logger.LogInformation("{Date} - ListenerQueue : Init channel", DateTime.Now);
-                IChannel channel = await _repository.CreateChannelAsync(connection);
-                _logger.LogInformation("{Date} - ListenerQueue : Created channel, channel: {channel}", DateTime.Now, channel.ToString());
-
-                _logger.LogInformation
-                    ("{Date} - ListenerQueue : Init Queue, on {host}, queue_name: {name}",
-                    DateTime.Now, rabbitOptions.Host, queueOptions.QueueName);
-
-                await channel.QueueDeclareAsync(queue: queueOptions.QueueName,
+                ValidateConnection();
+                await channel!.QueueDeclareAsync(queue: queueOptions.QueueName,
                     durable: true, exclusive: false, autoDelete: false, arguments: null,
                         noWait: false);
 
