@@ -14,8 +14,10 @@ namespace App.RabbitBuilder.Service.Listener
         /// <param name="MessageHook"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        Task InitListenerRabbitQueueAsync<T>(RabbitOptions rabbitOptions, Func<T, Task> MessageHook, CancellationToken token) where T: class;
+        Task InitListenerQueueAsync<T>(RabbitOptions rabbitOptions, Func<T, Task> MessageHook, CancellationToken token)
+            where T : class, new();
 
-        Task InitListenerRabbitQueueAsync<T>(RabbitOptionsExtended rabbitOptions, string rabbitName, Func<T, Task> MessageHook, CancellationToken token) where T : class;
+        Task InitListenerQueueAsync<T>(RabbitOptionsExtended rabbitOptions, string rabbitName, Func<T, Task> MessageHook, CancellationToken token) 
+            where T: class, new();
     }
 }

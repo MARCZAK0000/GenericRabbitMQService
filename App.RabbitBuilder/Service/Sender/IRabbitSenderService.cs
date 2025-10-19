@@ -14,7 +14,8 @@ namespace App.RabbitBuilder.Service.Sender
         /// <param name="rabbitOptions">Options</param>
         /// <param name="message"></param>
         /// <returns></returns>
-        Task InitSenderRabbitQueueAsync<T>(RabbitOptions rabbitOptions, T message, CancellationToken token) where T : class;
-        Task InitSenderRabbitQueueAsync<T>(RabbitOptionsExtended rabbitOptions, T message, string rabbitQueueName,CancellationToken token) where T : class;
+        Task AddMessageToQueueAsync<T>(RabbitOptions rabbitOptions, T message, CancellationToken token) where T: class, new();
+        Task AddMessageToQueueAsync<T>(RabbitOptionsExtended rabbitOptions, T message, string rabbitQueueName, CancellationToken token)
+            where T : class, new();
     }
 }

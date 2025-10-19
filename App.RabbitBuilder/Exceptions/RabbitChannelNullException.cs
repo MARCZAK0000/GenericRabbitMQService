@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace App.RabbitBuilder.Exceptions
+﻿namespace App.RabbitBuilder.Exceptions
 {
     public class RabbitChannelNullException : Exception
     {
@@ -14,6 +8,11 @@ namespace App.RabbitBuilder.Exceptions
 
         public RabbitChannelNullException(string? message) : base(message)
         {
+
+        }
+        public RabbitChannelNullException(string methodName, string message) : base($"{methodName}: {message}")
+        {
+
         }
     }
 }

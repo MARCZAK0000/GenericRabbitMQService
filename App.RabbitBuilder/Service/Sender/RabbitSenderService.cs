@@ -10,13 +10,13 @@ using System.Text.Json;
 
 namespace App.RabbitBuilder.Service.Sender
 {
-    public class RabbitSenderService : RabbitServiceBase, IRabbitSenderService
+    public sealed class RabbitSenderService : RabbitServiceBase, IRabbitSenderService
     {
         private readonly ILogger<RabbitSenderService> _logger;
         public RabbitSenderService(IRabbitRepository repository,
             ILogger<RabbitSenderService> logger,
             ConfigurationOptions configurationOptions) : base(configurationOptions, repository, logger)
-        { 
+        {
             _logger = logger;
         }
 
@@ -28,7 +28,8 @@ namespace App.RabbitBuilder.Service.Sender
         /// <param name="message">The message object to send</param>
         /// <param name="token">Cancellation token for the operation</param>
         /// <returns>A task representing the asynchronous operation</returns>
-        public async Task InitSenderRabbitQueueAsync<T>(RabbitOptions rabbitOptions, T message, CancellationToken token) where T : class
+        public async Task AddMessageToQueueAsync<T>(RabbitOptions rabbitOptions, T message, CancellationToken token)
+            where T: class, new()
         {
             if (rabbitOptions.SenderQueueName == null)
                 throw new ArgumentNullException(nameof(rabbitOptions.SenderQueueName), "SenderQueueName cannot be null");
@@ -36,7 +37,7 @@ namespace App.RabbitBuilder.Service.Sender
             await RetryConnection(async () =>
             {
                 await CreateRabbitConnectionAsync(rabbitOptions, token);
-                await InitSenderRabbitQueueHandlerAsync(rabbitOptions.SenderQueueName, message);
+                await AddMessageToQueue(rabbitOptions.SenderQueueName, message);
             }, token);
         }
 
@@ -49,7 +50,8 @@ namespace App.RabbitBuilder.Service.Sender
         /// <param name="rabbitQueueName">The name of the specific queue to send to</param>
         /// <param name="token">Cancellation token for the operation</param>
         /// <returns>A task representing the asynchronous operation</returns>
-        public async Task InitSenderRabbitQueueAsync<T>(RabbitOptionsExtended rabbitOptions, T message, string rabbitQueueName, CancellationToken token) where T : class
+        public async Task AddMessageToQueueAsync<T>(RabbitOptionsExtended rabbitOptions, T message, string rabbitQueueName, CancellationToken token)
+            where T : class, new()
         {
             QueueOptions? queueOptions = rabbitOptions.SenderQueues?.FirstOrDefault(pr => pr.Name == rabbitQueueName)
                 ?? throw new ArgumentNullException($"Queue with name '{rabbitQueueName}' not found in SenderQueues.");
@@ -57,13 +59,13 @@ namespace App.RabbitBuilder.Service.Sender
             await RetryConnection(async () =>
             {
                 await CreateRabbitConnectionAsync(rabbitOptions, token);
-                await InitSenderRabbitQueueHandlerAsync(queueOptions, message);
+                await AddMessageToQueue(queueOptions, message);
             }, token);
         }
 
-        private async Task InitSenderRabbitQueueHandlerAsync<T>(QueueOptions queueOptions,
-            T message) where T : class
-        {
+        private async Task AddMessageToQueue<T>(QueueOptions queueOptions,
+            T message) where T : class, new()
+        { 
             try
             {
                 ValidateConnection();
@@ -75,8 +77,8 @@ namespace App.RabbitBuilder.Service.Sender
                     arguments: null,
                     noWait: false);
 
-                string rabbitMessage = JsonSerializer.Serialize(message);
-                byte[] encodeMessage = Encoding.UTF8.GetBytes(rabbitMessage);
+                string jsonMessage = JsonSerializer.Serialize(message);
+                byte[] encodeMessage = Encoding.UTF8.GetBytes(jsonMessage);
 
                 var properties = new BasicProperties
                 {
@@ -85,12 +87,12 @@ namespace App.RabbitBuilder.Service.Sender
 
                 await channel.BasicPublishAsync(
                     exchange: string.Empty,
-                    routingKey: queueOptions.QueueName, 
+                    routingKey: queueOptions.QueueName,
                     mandatory: true,
                     basicProperties: properties,
                     body: encodeMessage);
 
-                
+
             }
             catch (Exception ex)
             {
